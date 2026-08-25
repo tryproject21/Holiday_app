@@ -174,13 +174,46 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION public.join_trip_by_code(join_room_code TEXT)
+RETURNS UUID AS $$
+DECLARE
+    found_trip_id UUID;
+    v_user_id UUID;
+    v_user_name TEXT;
+BEGIN
+    v_user_id := auth.uid();
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Not authenticated';
+    END IF;
+
+    SELECT id INTO found_trip_id
+    FROM public.trips
+    WHERE room_code = join_room_code;
+
+    IF found_trip_id IS NULL THEN
+        RAISE EXCEPTION 'Room code tidak ditemukan';
+    END IF;
+
+    SELECT display_name INTO v_user_name
+    FROM public.profiles
+    WHERE id = v_user_id;
+
+    IF NOT EXISTS (SELECT 1 FROM public.trip_members WHERE trip_id = found_trip_id AND user_id = v_user_id) THEN
+        INSERT INTO public.trip_members (trip_id, user_id, display_name, role)
+        VALUES (found_trip_id, v_user_id, v_user_name, 'editor');
+    END IF;
+
+    RETURN found_trip_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
 -- Trips: members can view and update their trips
 CREATE POLICY "Members can view their trips" ON trips
-    FOR SELECT USING (is_trip_member(id));
+    FOR SELECT USING (is_trip_member(id) OR created_by = auth.uid());
 CREATE POLICY "Authenticated users can create trips" ON trips
     FOR INSERT WITH CHECK (auth.uid() = created_by);
 CREATE POLICY "Members can update their trips" ON trips
-    FOR UPDATE USING (is_trip_member(id));
+    FOR UPDATE USING (is_trip_member(id) OR created_by = auth.uid());
 CREATE POLICY "Owner can delete trip" ON trips
     FOR DELETE USING (is_trip_owner(id));
 

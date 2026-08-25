@@ -45,48 +45,17 @@ function TripSelector({ onSelectTrip, onCreateNew }) {
     setJoining(true);
 
     try {
-      // Find the trip by room code
-      const { data: trip, error: findError } = await supabase
-        .from('trips')
-        .select('id, name')
-        .eq('room_code', roomCode.trim().toUpperCase())
-        .single();
-
-      if (findError || !trip) {
-        setError('Room code tidak ditemukan. Periksa kembali kodenya.');
-        setJoining(false);
-        return;
-      }
-
-      // Check if already a member
-      const { data: existing } = await supabase
-        .from('trip_members')
-        .select('id')
-        .eq('trip_id', trip.id)
-        .eq('user_id', profile.id)
-        .single();
-
-      if (existing) {
-        // Already a member, just select the trip
-        onSelectTrip(trip.id);
-        return;
-      }
-
-      // Join the trip
-      const { error: joinError } = await supabase
-        .from('trip_members')
-        .insert({
-          trip_id: trip.id,
-          user_id: profile.id,
-          display_name: profile.display_name,
-          role: 'editor',
-        });
+      // Use RPC to bypass RLS when looking up the room code and joining
+      const { data: tripId, error: joinError } = await supabase.rpc('join_trip_by_code', {
+        join_room_code: roomCode.trim().toUpperCase()
+      });
 
       if (joinError) throw joinError;
+      if (!tripId) throw new Error('Room code tidak ditemukan.');
 
-      onSelectTrip(trip.id);
+      onSelectTrip(tripId);
     } catch (err) {
-      setError(err.message || 'Gagal bergabung ke trip.');
+      setError(err.message === 'Room code tidak ditemukan' ? err.message : 'Gagal bergabung ke trip. Periksa kembali kodenya.');
     } finally {
       setJoining(false);
     }
