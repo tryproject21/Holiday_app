@@ -155,27 +155,38 @@ CREATE POLICY "Users can update own profile" ON profiles
 CREATE POLICY "Users can insert own profile" ON profiles
     FOR INSERT WITH CHECK (auth.uid() = id);
 
--- Trips: members can view their trips
-CREATE POLICY "Members can view their trips" ON trips
-    FOR SELECT USING (
-        id IN (SELECT trip_id FROM trip_members WHERE user_id = auth.uid())
+-- Helper functions for RLS (SECURITY DEFINER to bypass recursion)
+CREATE OR REPLACE FUNCTION is_trip_member(check_trip_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM trip_members WHERE trip_id = check_trip_id AND user_id = auth.uid()
     );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION is_trip_owner(check_trip_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM trip_members WHERE trip_id = check_trip_id AND user_id = auth.uid() AND role = 'owner'
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trips: members can view and update their trips
+CREATE POLICY "Members can view their trips" ON trips
+    FOR SELECT USING (is_trip_member(id));
 CREATE POLICY "Authenticated users can create trips" ON trips
     FOR INSERT WITH CHECK (auth.uid() = created_by);
 CREATE POLICY "Members can update their trips" ON trips
-    FOR UPDATE USING (
-        id IN (SELECT trip_id FROM trip_members WHERE user_id = auth.uid())
-    );
+    FOR UPDATE USING (is_trip_member(id));
 CREATE POLICY "Owner can delete trip" ON trips
-    FOR DELETE USING (
-        id IN (SELECT trip_id FROM trip_members WHERE user_id = auth.uid() AND role = 'owner')
-    );
+    FOR DELETE USING (is_trip_owner(id));
 
 -- Trip Members: members can view other members in same trip
 CREATE POLICY "Members can view trip members" ON trip_members
-    FOR SELECT USING (
-        trip_id IN (SELECT trip_id FROM trip_members WHERE user_id = auth.uid())
-    );
+    FOR SELECT USING (is_trip_member(trip_id) OR user_id = auth.uid());
 CREATE POLICY "Authenticated users can join trips" ON trip_members
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Members can leave trips" ON trip_members
