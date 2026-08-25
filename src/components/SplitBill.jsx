@@ -5,7 +5,7 @@ import { Users, Plus, Pencil, Trash2, X, ArrowRight } from 'lucide-react';
 const emptyForm = { description: '', amount: '', paidBy: '', splitType: 'equal', splitAmong: [], customAmounts: {} };
 
 function SplitBill() {
-  const { trip, splitBills, addTransaction, updateTransaction, deleteTransaction, calculateDebts } = useAppContext();
+  const { trip, members, splitBills, addTransaction, updateTransaction, deleteTransaction, calculateDebts } = useAppContext();
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -87,9 +87,30 @@ function SplitBill() {
 
   return (
     <div className="card">
-      <div className="card-header">
-        <h2 className="card-title"><Users size={22} /> Split Bill</h2>
+      <div className="card-header" style={{ marginBottom: 'var(--spacing-md)' }}>
+        <h2 className="card-title"><Users size={22} /> Anggota & Tagihan Bersama</h2>
         <button className="btn btn-primary" onClick={openAdd}><Plus size={16} /> Tambah Tagihan</button>
+      </div>
+
+      {/* Participants List */}
+      <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+          {members.map((m) => (
+            <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: 'var(--color-primary-lighter)', borderRadius: '12px' }}>
+              <div style={{ 
+                width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+                backgroundColor: 'var(--color-background)', color: 'var(--color-primary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
+              }}>
+                {m.display_name.substring(0, 2).toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.display_name}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', textTransform: 'capitalize' }}>{m.role === 'owner' ? 'Ketua' : 'Anggota'}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Debt summary */}

@@ -52,7 +52,7 @@ function AppContent() {
     { key: 'planning', label: 'Rencana', icon: Lightbulb },
     { key: 'itinerary', label: 'Jadwal', icon: CalendarDays },
     { key: 'ledger', label: 'Keuangan', icon: ReceiptText },
-    { key: 'splitbill', label: 'Split Bill', icon: Users },
+    { key: 'splitbill', label: 'Anggota', icon: Users },
     { key: 'checklist', label: 'Checklist', icon: CheckSquare },
     { key: 'documents', label: 'Dokumen', icon: Folder },
   ];

@@ -284,33 +284,6 @@ function Dashboard() {
              'Jangan lupa lengkapi checklist Anda sebelum berangkat.'}
           </p>
         </div>
-        {/* WIDGET 7: PARTICIPANTS */}
-        <div className="bento-card" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h4 style={{ fontSize: '1rem', marginBottom: 'var(--spacing-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Users size={18} color="var(--color-primary)" /> Anggota Trip
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, overflowY: 'auto' }}>
-            {members.map((m) => (
-              <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ 
-                  width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
-                  backgroundColor: 'var(--color-primary-lighter)', color: 'var(--color-primary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
-                }}>
-                  {m.display_name.substring(0, 2).toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.display_name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', textTransform: 'capitalize' }}>{m.role === 'owner' ? 'Ketua' : 'Anggota'}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--color-border)', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>Room Code:</div>
-            <div style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '2px', color: 'var(--color-primary)' }}>{trip.room_code || '---'}</div>
-          </div>
-        </div>
 
         {/* WIDGET 5: INTERACTIVE MAP — ALWAYS VISIBLE */}
         <div className="bento-card bento-full" style={{ padding: 0, overflow: 'hidden', position: 'relative', zIndex: 0 }}>
