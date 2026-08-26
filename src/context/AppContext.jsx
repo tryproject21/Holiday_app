@@ -409,6 +409,14 @@ export function AppProvider({ children, tripId }) {
             balances[payer] = (balances[payer] || 0) + Number(amount);
           }
         });
+      } else if (bill.split_type === 'settlement') {
+        // In a settlement, payer is the one paying the debt, payee is the one receiving.
+        // The payer's debt decreases (balance goes up), the payee's credit decreases (balance goes down).
+        const payee = bill.split_among[0];
+        if (payee && payee !== payer) {
+          balances[payer] = (balances[payer] || 0) + totalAmount;
+          balances[payee] = (balances[payee] || 0) - totalAmount;
+        }
       }
     });
 

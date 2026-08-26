@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS trip_members (
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     trip_id UUID REFERENCES trips(id) ON DELETE CASCADE,
-    type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
+    type TEXT NOT NULL CHECK (type IN ('income', 'expense', 'settlement')),
     category TEXT NOT NULL,
     amount NUMERIC NOT NULL,
     date DATE NOT NULL,

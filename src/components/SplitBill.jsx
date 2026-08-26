@@ -3,12 +3,15 @@ import { useAppContext } from '../context/AppContext';
 import { Users, Plus, Pencil, Trash2, X, ArrowRight } from 'lucide-react';
 
 const emptyForm = { description: '', amount: '', paidBy: '', splitType: 'equal', splitAmong: [], customAmounts: {} };
+const emptySettlementForm = { amount: '', paidBy: '', payee: '' };
 
 function SplitBill() {
   const { trip, members, splitBills, addTransaction, updateTransaction, deleteTransaction, calculateDebts } = useAppContext();
   const [showModal, setShowModal] = useState(false);
+  const [showSettlementModal, setShowSettlementModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [settlementForm, setSettlementForm] = useState(emptySettlementForm);
 
   const debts = calculateDebts();
 
@@ -16,6 +19,11 @@ function SplitBill() {
     setForm({ ...emptyForm, paidBy: trip.members[0] || '', splitAmong: [...trip.members] });
     setEditingId(null);
     setShowModal(true);
+  };
+
+  const openAddSettlement = () => {
+    setSettlementForm({ ...emptySettlementForm, paidBy: trip.members[0] || '', payee: trip.members[1] || '' });
+    setShowSettlementModal(true);
   };
 
   const openEdit = (bill) => {
@@ -75,6 +83,31 @@ function SplitBill() {
     setEditingId(null);
   };
 
+  const handleSettlementSubmit = (e) => {
+    e.preventDefault();
+    if (!settlementForm.amount || !settlementForm.paidBy || !settlementForm.payee || settlementForm.paidBy === settlementForm.payee) {
+      alert('Mohon lengkapi data pelunasan dengan benar (Pembayar dan Penerima harus berbeda).');
+      return;
+    }
+
+    const billData = {
+      type: 'settlement',
+      category: 'Pelunasan',
+      date: new Date().toISOString().split('T')[0],
+      note: `Pelunasan dari ${settlementForm.paidBy} ke ${settlementForm.payee}`,
+      amount: Number(settlementForm.amount),
+      paidBy: settlementForm.paidBy,
+      isSplit: true, // we use isSplit so it shows up in this view
+      splitType: 'settlement',
+      splitAmong: [settlementForm.payee],
+      customAmounts: {},
+    };
+
+    addTransaction(billData);
+    setShowSettlementModal(false);
+    setSettlementForm(emptySettlementForm);
+  };
+
   const handleDelete = (id) => {
     if (window.confirm('Hapus tagihan ini?')) {
       deleteTransaction(id);
@@ -89,7 +122,10 @@ function SplitBill() {
     <div className="card">
       <div className="card-header" style={{ marginBottom: 'var(--spacing-md)' }}>
         <h2 className="card-title"><Users size={22} /> Anggota & Tagihan Bersama</h2>
-        <button className="btn btn-primary" onClick={openAdd}><Plus size={16} /> Tambah Tagihan</button>
+        <div className="flex gap-2">
+          <button className="btn btn-outline" onClick={openAddSettlement}>Catat Pelunasan</button>
+          <button className="btn btn-primary" onClick={openAdd}><Plus size={16} /> Tambah Tagihan</button>
+        </div>
       </div>
 
       {/* Participants List */}
@@ -142,15 +178,29 @@ function SplitBill() {
           {splitBills.map((bill) => (
             <div key={bill.id} className="bill-item">
               <div className="bill-info">
-                <div className="bill-title">{bill.note || bill.description}</div>
+                <div className="bill-title">
+                  {bill.type === 'settlement' ? (
+                    <span style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>✅ Pelunasan Hutang</span>
+                  ) : (
+                    bill.note || bill.description
+                  )}
+                </div>
                 <div className="bill-meta">
-                  Dibayar oleh <strong>{bill.paidBy}</strong> • {bill.splitType === 'equal' ? 'Bagi rata' : 'Kustom'} ke {bill.splitAmong?.join(', ')}
+                  {bill.splitType === 'settlement' ? (
+                    <><strong>{bill.paidBy}</strong> membayar ke <strong>{bill.splitAmong?.[0]}</strong></>
+                  ) : (
+                    <>Dibayar oleh <strong>{bill.paidBy}</strong> • {bill.splitType === 'equal' ? 'Bagi rata' : 'Kustom'} ke {bill.splitAmong?.join(', ')}</>
+                  )}
                 </div>
               </div>
               <div className="bill-right">
-                <span className="bill-amount">{formatRp(bill.amount)}</span>
+                <span className="bill-amount" style={{ color: bill.type === 'settlement' ? 'var(--color-success)' : 'inherit' }}>
+                  {formatRp(bill.amount)}
+                </span>
                 <div className="flex gap-2">
-                  <button className="btn-icon" onClick={() => openEdit(bill)} title="Edit"><Pencil size={14} /></button>
+                  {bill.type !== 'settlement' && (
+                    <button className="btn-icon" onClick={() => openEdit(bill)} title="Edit"><Pencil size={14} /></button>
+                  )}
                   <button className="btn-icon btn-icon-danger" onClick={() => handleDelete(bill.id)} title="Hapus"><Trash2 size={14} /></button>
                 </div>
               </div>
@@ -232,6 +282,41 @@ function SplitBill() {
               )}
               <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--spacing-sm)' }}>
                 {editingId ? 'Simpan Perubahan' : 'Tambah Tagihan'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Settlement Modal */}
+      {showSettlementModal && (
+        <div className="modal-overlay" onClick={() => setShowSettlementModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Catat Pelunasan</h3>
+              <button className="btn-icon" onClick={() => setShowSettlementModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleSettlementSubmit}>
+              <div className="form-group">
+                <label className="form-label">Siapa yang membayar? (Dari) *</label>
+                <select className="form-input" value={settlementForm.paidBy} onChange={(e) => setSettlementForm({ ...settlementForm, paidBy: e.target.value })} required>
+                  <option value="">— Pilih —</option>
+                  {trip.members.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Kepada siapa? (Ke) *</label>
+                <select className="form-input" value={settlementForm.payee} onChange={(e) => setSettlementForm({ ...settlementForm, payee: e.target.value })} required>
+                  <option value="">— Pilih —</option>
+                  {trip.members.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Nominal (Rp) *</label>
+                <input type="number" className="form-input" placeholder="50000" value={settlementForm.amount} onChange={(e) => setSettlementForm({ ...settlementForm, amount: e.target.value })} min="1" required />
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--spacing-sm)' }}>
+                Simpan Pelunasan
               </button>
             </form>
           </div>
