@@ -27,14 +27,12 @@ const CATEGORY_COLORS = {
   'Split Bill': '#9d4edd',
 };
 
-// Auto-fit map to show all markers
+// Auto-fit map to show markers without zooming out too much
 function FitBounds({ markers }) {
   const map = useMap();
   React.useEffect(() => {
-    if (markers.length > 1) {
-      const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]));
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
-    } else if (markers.length === 1) {
+    if (markers.length > 0) {
+      // Focus on the first marker/destination to keep the view compact
       map.setView([markers[0].lat, markers[0].lng], 13);
     }
   }, [markers, map]);
@@ -300,7 +298,7 @@ function Dashboard() {
             </div>
           </div>
 
-          <div style={{ height: '320px' }}>
+          <div className="dashboard-map-wrapper">
             {mapMarkers.length > 0 ? (
               <MapContainer center={defaultMapCenter} zoom={10} style={{ height: '100%', width: '100%', zIndex: 0 }}>
                 <TileLayer url="http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" subdomains={['mt0','mt1','mt2','mt3']} attribution="Google Maps" />

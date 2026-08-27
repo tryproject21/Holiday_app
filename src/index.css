@@ -1087,6 +1087,8 @@ select.form-input {
   }
 
   .card { padding: var(--spacing-md); }
+  .bento-card { padding: var(--spacing-md) !important; border-radius: 16px; }
+  .dashboard-map-wrapper { height: 220px; }
   .card-header { flex-direction: column; align-items: flex-start; }
   .bill-item { flex-direction: column; align-items: flex-start; }
   .bill-right { width: 100%; justify-content: space-between; margin-top: 8px; }
@@ -1102,6 +1104,9 @@ select.form-input {
   /* Debt Grid optimization */
   .debt-grid { grid-template-columns: 1fr; }
 }
+
+/* Base styles for map wrapper */
+.dashboard-map-wrapper { height: 320px; }
 
 /* ============================================================
    AUTH PAGE STYLES
