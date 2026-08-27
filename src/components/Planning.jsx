@@ -90,7 +90,7 @@ function Planning() {
                     <button 
                       className="btn-icon btn-icon-danger" 
                       style={{ position: 'absolute', bottom: '8px', right: '8px', padding: '4px' }}
-                      onClick={() => { if(window.confirm('Hapus opsi ini?')) deletePlanOption(plan.id, opt.id); }}
+                      onClick={() => { if(window.confirm('Hapus opsi ini?')) deletePlanOption(opt.id); }}
                     >
                       <Trash2 size={14} />
                     </button>
