@@ -122,8 +122,9 @@ function Dashboard() {
   // Sorted activities for the journey scroll and map routing
   const sortedActivities = [...activities].sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);
-    if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
-    return (a.time || '').localeCompare(b.time || '');
+    const timeA = a.time || '23:59';
+    const timeB = b.time || '23:59';
+    return timeA.localeCompare(timeB);
   });
 
   // All activities with coordinates (sorted)

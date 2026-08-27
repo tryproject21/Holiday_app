@@ -75,7 +75,7 @@ function LocationPicker({ form, setForm, existingMarkers }) {
 }
 
 function Itinerary() {
-  const { activities, addActivity, updateActivity, deleteActivity, reorderActivities } = useAppContext();
+  const { activities, addActivity, updateActivity, deleteActivity } = useAppContext();
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -85,10 +85,6 @@ function Itinerary() {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef(null);
-
-  // Drag and drop state
-  const [draggedActId, setDraggedActId] = useState(null);
-  const [dragOverActId, setDragOverActId] = useState(null);
 
   const toggleDate = (date) => {
     setExpandedDates(prev => ({ ...prev, [date]: !prev[date] }));
@@ -193,28 +189,6 @@ function Itinerary() {
     if (window.confirm('Hapus kegiatan ini?')) deleteActivity(id);
   };
 
-  // Drag and Drop handlers
-  const handleDragStart = (e, id) => {
-    setDraggedActId(id);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-  const handleDragEnter = (e, id, date) => {
-    e.preventDefault();
-    // Only allow reordering within the same date
-    const draggedAct = activities.find(a => a.id === draggedActId);
-    if (draggedAct && draggedAct.date === date && draggedActId !== id) {
-      setDragOverActId(id);
-    }
-  };
-  const handleDragOver = (e) => e.preventDefault();
-  const handleDragEnd = (date) => {
-    if (draggedActId !== null && dragOverActId !== null && draggedActId !== dragOverActId) {
-      reorderActivities(date, draggedActId, dragOverActId);
-    }
-    setDraggedActId(null);
-    setDragOverActId(null);
-  };
-
   const openGoogleMaps = (lat, lng, name) => {
     window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(name)}`, '_blank');
   };
@@ -222,8 +196,9 @@ function Itinerary() {
   // Sorted & grouped
   const sorted = [...activities].sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);
-    if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
-    return (a.time || '').localeCompare(b.time || '');
+    const timeA = a.time || '23:59';
+    const timeB = b.time || '23:59';
+    return timeA.localeCompare(timeB);
   });
   const grouped = sorted.reduce((acc, act) => {
     if (!acc[act.date]) acc[act.date] = [];
@@ -291,16 +266,8 @@ function Itinerary() {
                         <div 
                           key={act.id} 
                           className="timeline-item"
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, act.id)}
-                          onDragEnter={(e) => handleDragEnter(e, act.id, date)}
-                          onDragOver={handleDragOver}
-                          onDragEnd={() => handleDragEnd(date)}
                           style={{
-                            opacity: draggedActId === act.id ? 0.4 : 1,
-                            backgroundColor: dragOverActId === act.id ? 'var(--color-primary-lighter)' : 'transparent',
                             borderRadius: '8px',
-                            cursor: 'grab',
                             transition: 'all 0.2s',
                           }}
                         >
