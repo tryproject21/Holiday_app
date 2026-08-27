@@ -1036,16 +1036,72 @@ select.form-input {
 
 /* ──── RESPONSIVE ──── */
 @media (max-width: 640px) {
+  .app-container {
+    padding: var(--spacing-sm) var(--spacing-sm) 80px;
+  }
   .header h1 { font-size: 1.4rem; }
-  .tab-label { display: none; }
-  .tab-btn { padding: 10px 12px; }
+  
+  /* Bottom Navigation for Mobile */
+  .tab-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--color-surface);
+    padding: 10px var(--spacing-sm) calc(10px + env(safe-area-inset-bottom));
+    justify-content: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    z-index: 1000;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+    border-top: 1px solid var(--color-border);
+    margin: 0;
+    gap: 12px;
+  }
+  
+  .tab-btn { 
+    flex-direction: column; 
+    padding: 6px 12px; 
+    font-size: 0.7rem;
+    gap: 6px;
+    border-radius: 12px;
+    background: transparent;
+    box-shadow: none;
+    flex: 0 0 auto;
+    min-width: 65px;
+    scroll-snap-align: start;
+  }
+  
+  .tab-active {
+    background: var(--color-primary-lighter);
+    color: var(--color-primary);
+    box-shadow: none;
+  }
+  
+  .tab-label {
+    display: block;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    width: 100%;
+    text-align: center;
+  }
+
   .card { padding: var(--spacing-md); }
   .card-header { flex-direction: column; align-items: flex-start; }
   .bill-item { flex-direction: column; align-items: flex-start; }
-  .bill-right { width: 100%; justify-content: space-between; }
+  .bill-right { width: 100%; justify-content: space-between; margin-top: 8px; }
   .stats-row { grid-template-columns: 1fr; }
+  
+  /* Modal optimization */
+  .modal-content {
+    padding: var(--spacing-md);
+    margin: var(--spacing-sm);
+    max-height: 85vh;
+  }
+  
+  /* Debt Grid optimization */
+  .debt-grid { grid-template-columns: 1fr; }
 }
-
 
 /* ============================================================
    AUTH PAGE STYLES
